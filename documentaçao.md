@@ -26,6 +26,9 @@ desc: criar um mapa funcional com movimentação entre areas
 detalhes:
 
 - mapa com animções de movimento e sons
+- coordenadas funcionais
+- ambientes interativos
+- utilizar imagens da pasta de inspirações como referencia
 
 RF003 - Tarefas
 
@@ -36,7 +39,7 @@ detalhes:
 - tasks sobre as grandes navegações
 - pergaminhos interativos
 
-RF004 - Personagens
+RF004 - Personagens & Motivações
 Portugal
 
 - Infante D. Henrique (idealizador); 
