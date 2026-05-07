@@ -28,8 +28,36 @@ detalhes:
 - mapa com animções de movimento e sons
 
 RF003 - Tarefas
+
 Prioridade: Alta
+
 desc: criar pergaminhos com perguntas sobre a navegação
 detalhes:
-
+- tasks sobre as grandes navegações
 - pergaminhos interativos
+
+RF004 - Personagens
+Portugal
+
+- Infante D. Henrique (idealizador); 
+- Bartolomeu Dias (cabo da Boa Esperança);
+- Vasco da Gama (chegada à Índia);
+- Pedro Álvares Cabral (chegada ao Brasil).
+
+Espanha
+- Cristóvão Colombo (chegada à América);
+- Fernão de Magalhães (primeira viagem de circunavegação);
+- Américo Vespúcio;
+
+Outros
+
+- John Cabot (Inglaterra);
+- Jacques Cartier (França).
+
+Motivações e Participantes
+
+Monarquias Nacionais: Reis que financiavam para expandir territórios e poder;
+
+Burguesia: Investidores que buscavam lucro no comércio de especiarias;
+
+Igreja Católica: Interessada na expansão da fé cristã.
