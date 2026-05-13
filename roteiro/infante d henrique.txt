@@ -1,15 +1,22 @@
-   "marinheiro": "Tomás"
-}
+Quando o jogador começa a jornada
 
-dialogo = [
-    (personagens["capitao"], "O mar está inquieto esta noite… mas foi graças ao Infante que chegamos tão longe."),
-    (personagens["marinheiro"], "Você fala de Infante Dom Henrique?"),
-    (personagens["capitao"], "Sim. Ele reuniu navegadores, astrônomos e cartógrafos para explorar o desconhecido."),
-    (personagens["marinheiro"], "Dizem que ninguém queria passar do Cabo Bojador."),
-    (personagens["capitao"], "Muitos temiam monstros e tempestades eternas."),
-    (personagens["marinheiro"], "E o Infante não tinha medo?"),
-    (personagens["capitao"], "Ele acreditava que o conhecimento era maior que o medo."),
-    (personagens["marinheiro"], "Então foi ele quem iniciou as grandes navegações portuguesas?"),
-    (personagens["capitao"], "Exatamente. Sem ele, talvez nunca tivéssemos cruzado estes mares."),
-    (personagens["marinheiro"], "Capitão… vejo luzes no horizonte!"),
-    (personagens["capitao"], "Prepare a tripulação! Hoje escreveremos história.")
+"Portugal é pequeno, mas o mar não tem fronteiras. Vai, e traz-me o que os mapas ainda não mostram."
+"Não temas o horizonte. O que os homens chamam de fim do mundo, eu chamo de começo."
+
+Dando uma missão
+
+"Os mouros bloqueiam as rotas de terra. Encontra um caminho pelo mar — e a glória será tua e de Portugal."
+"Há um cabo ao sul que nenhum cristão dobrou. Chama-se Bojador. Vai lá chegar."
+
+Quando o jogador falha ou volta sem completar
+
+"Não voltaste derrotado. Voltaste mais sábio. Isso também serve a Portugal."
+"Catorze vezes tentaram dobrar o Bojador antes de Gil Eanes. Na décima quinta, conseguiu."
+
+Reflexivo / filosófico
+
+"Dizem que sou o Navegador. Ironia — nunca embarquei. Mas cada nau que parte leva um pedaço da minha alma."
+"Deus deu-nos olhos para ver além do horizonte. O medo é o único mapa falso."
+
+Encerrando uma conversa
+"Vai com Deus e com a Ordem de Cristo. O vento te seja favorável."
