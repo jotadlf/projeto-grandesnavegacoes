@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grandes Navegações — Jogo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: 'Georgia', serif; }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── WORLD (tudo que se move junto) ── */
+    #world {
+      position: absolute;
+      top: 0; left: 0;
+      /* tamanho do seu mapa — ajuste conforme a imagem real */
+      width: 2400px;
+      height: 1600px;
+      will-change: transform;
+    }
+
+    /* ── MAPA ── */
+    #mapImage {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      /* ↓ troque pelo caminho real da imagem do mapa no seu repositório */
+      background-image: url('game-desing/mapa.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+
+    /* Fallback visual enquanto não tem a imagem real */
+    #mapFallback {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg,   transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
+        repeating-linear-gradient(90deg,  transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
+        radial-gradient(ellipse at 30% 40%, #2d5a1b 0%, transparent 35%),
+        radial-gradient(ellipse at 70% 60%, #1a4a2d 0%, transparent 28%),
+        radial-gradient(ellipse at 50% 80%, #3d6b22 0%, transparent 20%),
+        linear-gradient(160deg, #4a7c3f 0%, #2d5e35 40%, #1e4428 100%);
+    }
+    /* Oceano no mapa fallback */
+    #mapFallback::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; width: 38%; height: 100%;
+      background: linear-gradient(90deg, #0a3a6e 0%, #0d4f8a 60%, #1a6ba0 100%);
+      opacity: 0.85;
+    }
+    /* Texto indicando que é placeholder */
+    #mapFallback::after {
+      content: '[ Mapa placeholder — substitua por game-desing/mapa.png ]';
+      position: absolute;
+      top: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.55);
+      color: #f0d080;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    /* ── PLAYER ── */
+    #player {
+      position: absolute;
+      width: 48px;
+      height: 64px;
+      /* ↓ troque pelo sprite real */
+      background-image: url('game-desing/personagem.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      image-rendering: pixelated;
+      /* Sombra suave embaixo do personagem */
+      filter: drop-shadow(0 6px 6px rgba(0,0,0,0.5));
+      transition: transform 0.05s;
+      z-index: 10;
+    }
+    /* Fallback: silhueta de navegador quando não tem sprite */
+    #playerFallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    #playerFallback svg { width: 40px; height: 56px; }
+
+    /* ── HUD ── */
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 20px;
+      pointer-events: none;
+    }
+
+    .hud-panel {
+      background: rgba(10, 18, 30, 0.82);
+      border: 1px solid rgba(201,168,76,0.35);
+      padding: 8px 14px;
+      border-radius: 2px;
+      pointer-events: all;
+    }
+
+    #hudLocation {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      color: #c9a84c;
+      text-transform: uppercase;
+    }
+    #hudCoords {
+      font-size: 0.65rem;
+      color: rgba(242,228,196,0.45);
+      margin-top: 2px;
+    }
+
+    /* Minimap */
+    #minimap {
+      width: 140px;
+      height: 90px;
+      border: 1px solid rgba(201,168,76,0.3);
+      background: rgba(10,18,30,0.82);
+      position: relative;
+      overflow: hidden;
+    }
+    #minimapBg {
+      position: absolute;
+      inset: 0;
+      /* ↓ mesma imagem do mapa, só menor */
+      background-image: url('game-desing/mapa.png');
+      background-size: cover;
+      opacity: 0.55;
+    }
+    #minimapDot {
+      position: absolute;
+      width: 6px; height: 6px;
+      background: #f0d080;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #f0d080;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Controles hint */
+    #controls {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 100;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .key {
+      background: rgba(10,18,30,0.9);
+      border: 1px solid rgba(201,168,76,0.4);
+      color: #c9a84c;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      padding: 4px 8px;
+      border-radius: 2px;
+    }
+
+    /* Botão voltar ao menu */
+    #btnMenu {
+      position: fixed;
+      top: 14px;
+      right: 20px;
+      z-index: 200;
+      background: rgba(10,18,30,0.82);
+      border: 1px solid rgba(201,168,76,0.35);
+      color: #c9a84c;
+      font-family: 'Georgia', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      padding: 8px 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    #btnMenu:hover { background: rgba(201,168,76,0.15); }
+  </style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-panel">
+    <div id="hudLocation">⚓ Lisboa · Portugal</div>
+    <div id="hudCoords">x: 0 &nbsp;|&nbsp; y: 0</div>
+  </div>
+  <div class="hud-panel" id="minimap">
+    <div id="minimapBg"></div>
+    <div id="minimapDot"></div>
+  </div>
+</div>
+
+<button id="btnMenu" onclick="window.location.href='index.html'">← Menu</button>
+
+<!-- CONTROLES -->
+<div id="controls">
+  <span class="key">W ↑</span>
+  <span class="key">A ←</span>
+  <span class="key">S ↓</span>
+  <span class="key">D →</span>
+  <span class="key">SHIFT sprint</span>
+  <span class="key">E interagir</span>
+</div>
+
+<!-- MUNDO -->
+<div id="gameContainer">
+  <div id="world">
+
+    <!-- MAPA -->
+    <div id="mapImage">
+      <div id="mapFallback"></div>
+    </div>
+
+    <!-- PLAYER -->
+    <div id="player">
+      <!-- Silhueta SVG fallback (some quando tiver sprite real) -->
+      <div id="playerFallback">
+        <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Corpo -->
+          <ellipse cx="20" cy="44" rx="10" ry="10" fill="#8b6914"/>
+          <!-- Cabeça -->
+          <circle cx="20" cy="20" r="10" fill="#c8956a"/>
+          <!-- Chapéu -->
+          <ellipse cx="20" cy="11" rx="12" ry="4" fill="#3d2a08"/>
+          <rect x="14" y="4" width="12" height="9" rx="2" fill="#3d2a08"/>
+          <!-- Detalhe chapéu -->
+          <rect x="14" y="10" width="12" height="2" fill="#c9a84c"/>
+          <!-- Capa -->
+          <path d="M10 34 Q20 50 30 34 L28 44 Q20 52 12 44 Z" fill="#6b1f1f" opacity="0.9"/>
+          <!-- Espada -->
+          <line x1="32" y1="28" x2="38" y2="42" stroke="#c9c9c9" stroke-width="2"/>
+          <line x1="30" y1="32" x2="34" y2="32" stroke="#c9a84c" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  CONFIGURAÇÕES — ajuste conforme seu mapa
+// ════════════════════════════════════════════
+const CONFIG = {
+  mapW:      2400,   // largura total do mapa em px
+  mapH:      1600,   // altura total do mapa em px
+  tileSize:  80,     // tamanho de cada "quadrado" do grid (para colisão futura)
+  speed:     5,      // velocidade normal (px por frame)
+  sprint:    8,      // velocidade com SHIFT
+  playerW:   48,
+  playerH:   64,
+};
+
+// ════════════════════════════════════════════
+//  ESTADO DO JOGO
+// ════════════════════════════════════════════
+const state = {
+  x: 800,   // posição inicial do player no mundo
+  y: 600,
+  facing: 'down',    // direção que o personagem está olhando
+  isMoving: false,
+};
+
+const keys = {};
+
+// Posição da câmera (deslocamento do world)
+let camX = 0, camY = 0;
+
+// ════════════════════════════════════════════
+//  REFERÊNCIAS DOM
+// ════════════════════════════════════════════
+const world      = document.getElementById('world');
+const player     = document.getElementById('player');
+const hudCoords  = document.getElementById('hudCoords');
+const minimapDot = document.getElementById('minimapDot');
+
+// Coloca o player na posição inicial
+player.style.left = state.x + 'px';
+player.style.top  = state.y + 'px';
+
+// ════════════════════════════════════════════
+//  INPUT
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+
+  // Interação
+  if (e.key.toLowerCase() === 'e') handleInteract();
+});
+document.addEventListener('keyup',   e => { keys[e.key.toLowerCase()] = false; });
+
+// ════════════════════════════════════════════
+//  CÂMERA — centraliza o player na tela
+// ════════════════════════════════════════════
+function updateCamera() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Câmera tenta centralizar o player
+  camX = -(state.x + CONFIG.playerW / 2 - vw / 2);
+  camY = -(state.y + CONFIG.playerH / 2 - vh / 2);
+
+  // Limita a câmera nas bordas do mapa
+  camX = Math.min(0, Math.max(-(CONFIG.mapW - vw), camX));
+  camY = Math.min(0, Math.max(-(CONFIG.mapH - vh), camY));
+
+  world.style.transform = `translate(${camX}px, ${camY}px)`;
+}
+
+// ════════════════════════════════════════════
+//  MOVIMENTO
+// ════════════════════════════════════════════
+function move() {
+  const spd = keys['shift'] ? CONFIG.sprint : CONFIG.speed;
+  let dx = 0, dy = 0;
+
+  if (keys['w'] || keys['arrowup'])    { dy = -spd; state.facing = 'up'; }
+  if (keys['s'] || keys['arrowdown'])  { dy =  spd; state.facing = 'down'; }
+  if (keys['a'] || keys['arrowleft'])  { dx = -spd; state.facing = 'left'; }
+  if (keys['d'] || keys['arrowright']) { dx =  spd; state.facing = 'right'; }
+
+  // Normaliza diagonal (evita velocidade maior na diagonal)
+  if (dx !== 0 && dy !== 0) {
+    dx *= 0.707;
+    dy *= 0.707;
+  }
+
+  state.isMoving = dx !== 0 || dy !== 0;
+
+  // Aplica movimento com colisão nas bordas do mapa
+  state.x = Math.max(0, Math.min(CONFIG.mapW - CONFIG.playerW,  state.x + dx));
+  state.y = Math.max(0, Math.min(CONFIG.mapH - CONFIG.playerH,  state.y + dy));
+
+  // Flip horizontal quando vai para esquerda
+  player.style.transform = state.facing === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
+
+  // Atualiza DOM do player
+  player.style.left = state.x + 'px';
+  player.style.top  = state.y + 'px';
+}
+
+// ════════════════════════════════════════════
+//  HUD & MINIMAP
+// ════════════════════════════════════════════
+function updateHUD() {
+  // Coordenadas no estilo carta náutica
+  const lat = ((state.y / CONFIG.mapH) * 90).toFixed(1);
+  const lon = ((state.x / CONFIG.mapW) * 180).toFixed(1);
+  hudCoords.textContent = `${lat}°N  |  ${lon}°W`;
+
+  // Minimap dot
+  const mm = document.getElementById('minimap');
+  const dotX = (state.x / CONFIG.mapW) * mm.offsetWidth;
+  const dotY = (state.y / CONFIG.mapH) * mm.offsetHeight;
+  minimapDot.style.left = dotX + 'px';
+  minimapDot.style.top  = dotY + 'px';
+}
+
+// ════════════════════════════════════════════
+//  INTERAÇÃO (tecla E)
+//  — aqui vai chamar pergaminhos futuramente
+// ════════════════════════════════════════════
+function handleInteract() {
+  console.log('[E] Interação em:', Math.round(state.x), Math.round(state.y));
+  // TODO: checar proximidade de NPCs / objetos e abrir pergaminho
+}
+
+// ════════════════════════════════════════════
+//  GAME LOOP
+// ════════════════════════════════════════════
+function gameLoop() {
+  move();
+  updateCamera();
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+
+// Inicia
+updateCamera();
+gameLoop();
+</script>
+</body>
+</html>
