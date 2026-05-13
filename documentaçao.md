@@ -73,4 +73,11 @@ Motivações e Participantes
 - Burguesia: Investidores que buscavam lucro no comércio de especiarias;
 - Igreja Católica: Interessada na expansão da fé cristã.
 
-RF 004 -
+RF 004 - Minerios & Trocas
+
+Prioridade: média
+
+desc: adicionar minérios e formas de troca (escambo) com indigenas (estilo villagers do minecraft)
+
+- minerios: ferro, ouro, cobre, bronze,prata
+- materias-primas: Pau-Brasil, cana-de-açucar
