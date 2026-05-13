@@ -1,406 +1,271 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Grandes Navegações — Jogo</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Georgia', serif; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A Era das Grandes Navegações</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap"
+      rel="stylesheet"
+      href="css/style.css"
+    />
+  </head>
+  <body>
+    <!-- OCEAN BG -->
+    <div id="ocean">
+      <div class="stars"></div>
+      <div class="map-grid"></div>
+      <div class="lat-lines"></div>
 
-    #gameContainer {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
+      <!-- Ship SVG silhouette -->
+      <svg
+        id="ship"
+        viewBox="0 0 400 220"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- Hull -->
+        <path
+          d="M30 170 Q200 200 370 170 L350 190 Q200 215 50 190 Z"
+          fill="var(--parchment)"
+        />
+        <!-- Main mast -->
+        <line
+          x1="200"
+          y1="170"
+          x2="200"
+          y2="20"
+          stroke="var(--parchment)"
+          stroke-width="4"
+        />
+        <!-- Fore mast -->
+        <line
+          x1="290"
+          y1="170"
+          x2="290"
+          y2="60"
+          stroke="var(--parchment)"
+          stroke-width="3"
+        />
+        <!-- Mizzen mast -->
+        <line
+          x1="120"
+          y1="170"
+          x2="120"
+          y2="80"
+          stroke="var(--parchment)"
+          stroke-width="3"
+        />
+        <!-- Main sail -->
+        <path
+          d="M200 25 L280 80 L280 140 L200 155 L120 140 L120 80 Z"
+          fill="var(--parchment)"
+          opacity="0.9"
+        />
+        <!-- Cross on sail -->
+        <line
+          x1="200"
+          y1="30"
+          x2="200"
+          y2="150"
+          stroke="var(--red-wax)"
+          stroke-width="5"
+        />
+        <line
+          x1="130"
+          y1="90"
+          x2="270"
+          y2="90"
+          stroke="var(--red-wax)"
+          stroke-width="5"
+        />
+        <!-- Fore sail -->
+        <path
+          d="M290 65 L355 105 L355 155 L290 165 Z"
+          fill="var(--parchment)"
+          opacity="0.85"
+        />
+        <!-- Mizzen sail -->
+        <path
+          d="M120 85 L55 115 L55 160 L120 168 Z"
+          fill="var(--parchment)"
+          opacity="0.85"
+        />
+        <!-- Bowsprit -->
+        <line
+          x1="370"
+          y1="165"
+          x2="420"
+          y2="135"
+          stroke="var(--parchment)"
+          stroke-width="3"
+        />
+        <!-- Flag -->
+        <path d="M200 20 L200 10 L225 15 L200 20Z" fill="var(--red-wax)" />
+      </svg>
 
-    /* ── WORLD (tudo que se move junto) ── */
-    #world {
-      position: absolute;
-      top: 0; left: 0;
-      /* tamanho do seu mapa — ajuste conforme a imagem real */
-      width: 2400px;
-      height: 1600px;
-      will-change: transform;
-    }
-
-    /* ── MAPA ── */
-    #mapImage {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      image-rendering: pixelated;
-      /* ↓ troque pelo caminho real da imagem do mapa no seu repositório */
-      background-image: url('game-desing/mapa.png');
-      background-size: cover;
-      background-repeat: no-repeat;
-    }
-
-    /* Fallback visual enquanto não tem a imagem real */
-    #mapFallback {
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(0deg,   transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
-        repeating-linear-gradient(90deg,  transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
-        radial-gradient(ellipse at 30% 40%, #2d5a1b 0%, transparent 35%),
-        radial-gradient(ellipse at 70% 60%, #1a4a2d 0%, transparent 28%),
-        radial-gradient(ellipse at 50% 80%, #3d6b22 0%, transparent 20%),
-        linear-gradient(160deg, #4a7c3f 0%, #2d5e35 40%, #1e4428 100%);
-    }
-    /* Oceano no mapa fallback */
-    #mapFallback::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; width: 38%; height: 100%;
-      background: linear-gradient(90deg, #0a3a6e 0%, #0d4f8a 60%, #1a6ba0 100%);
-      opacity: 0.85;
-    }
-    /* Texto indicando que é placeholder */
-    #mapFallback::after {
-      content: '[ Mapa placeholder — substitua por game-desing/mapa.png ]';
-      position: absolute;
-      top: 16px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.55);
-      color: #f0d080;
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      padding: 4px 12px;
-      border-radius: 2px;
-      white-space: nowrap;
-    }
-
-    /* ── PLAYER ── */
-    #player {
-      position: absolute;
-      width: 48px;
-      height: 64px;
-      /* ↓ troque pelo sprite real */
-      background-image: url('game-desing/personagem.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center bottom;
-      image-rendering: pixelated;
-      /* Sombra suave embaixo do personagem */
-      filter: drop-shadow(0 6px 6px rgba(0,0,0,0.5));
-      transition: transform 0.05s;
-      z-index: 10;
-    }
-    /* Fallback: silhueta de navegador quando não tem sprite */
-    #playerFallback {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    #playerFallback svg { width: 40px; height: 56px; }
-
-    /* ── HUD ── */
-    #hud {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 14px 20px;
-      pointer-events: none;
-    }
-
-    .hud-panel {
-      background: rgba(10, 18, 30, 0.82);
-      border: 1px solid rgba(201,168,76,0.35);
-      padding: 8px 14px;
-      border-radius: 2px;
-      pointer-events: all;
-    }
-
-    #hudLocation {
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      color: #c9a84c;
-      text-transform: uppercase;
-    }
-    #hudCoords {
-      font-size: 0.65rem;
-      color: rgba(242,228,196,0.45);
-      margin-top: 2px;
-    }
-
-    /* Minimap */
-    #minimap {
-      width: 140px;
-      height: 90px;
-      border: 1px solid rgba(201,168,76,0.3);
-      background: rgba(10,18,30,0.82);
-      position: relative;
-      overflow: hidden;
-    }
-    #minimapBg {
-      position: absolute;
-      inset: 0;
-      /* ↓ mesma imagem do mapa, só menor */
-      background-image: url('game-desing/mapa.png');
-      background-size: cover;
-      opacity: 0.55;
-    }
-    #minimapDot {
-      position: absolute;
-      width: 6px; height: 6px;
-      background: #f0d080;
-      border-radius: 50%;
-      box-shadow: 0 0 4px #f0d080;
-      transform: translate(-50%, -50%);
-    }
-
-    /* Controles hint */
-    #controls {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 6px;
-      z-index: 100;
-      opacity: 0.55;
-      pointer-events: none;
-    }
-    .key {
-      background: rgba(10,18,30,0.9);
-      border: 1px solid rgba(201,168,76,0.4);
-      color: #c9a84c;
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      padding: 4px 8px;
-      border-radius: 2px;
-    }
-
-    /* Botão voltar ao menu */
-    #btnMenu {
-      position: fixed;
-      top: 14px;
-      right: 20px;
-      z-index: 200;
-      background: rgba(10,18,30,0.82);
-      border: 1px solid rgba(201,168,76,0.35);
-      color: #c9a84c;
-      font-family: 'Georgia', serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      padding: 8px 16px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: background 0.2s;
-    }
-    #btnMenu:hover { background: rgba(201,168,76,0.15); }
-  </style>
-</head>
-<body>
-
-<!-- HUD -->
-<div id="hud">
-  <div class="hud-panel">
-    <div id="hudLocation">⚓ Lisboa · Portugal</div>
-    <div id="hudCoords">x: 0 &nbsp;|&nbsp; y: 0</div>
-  </div>
-  <div class="hud-panel" id="minimap">
-    <div id="minimapBg"></div>
-    <div id="minimapDot"></div>
-  </div>
-</div>
-
-<button id="btnMenu" onclick="window.location.href='index.html'">← Menu</button>
-
-<!-- CONTROLES -->
-<div id="controls">
-  <span class="key">W ↑</span>
-  <span class="key">A ←</span>
-  <span class="key">S ↓</span>
-  <span class="key">D →</span>
-  <span class="key">SHIFT sprint</span>
-  <span class="key">E interagir</span>
-</div>
-
-<!-- MUNDO -->
-<div id="gameContainer">
-  <div id="world">
-
-    <!-- MAPA -->
-    <div id="mapImage">
-      <div id="mapFallback"></div>
+      <!-- Waves -->
+      <svg
+        id="waves"
+        viewBox="0 0 1440 200"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          class="wave"
+          d="M0,80 C240,20 480,140 720,80 C960,20 1200,140 1440,80 L1440,200 L0,200Z"
+          fill="rgba(26,58,92,0.8)"
+        />
+        <path
+          class="wave2"
+          d="M0,110 C200,60 400,160 600,110 C800,60 1000,160 1200,110 C1300,85 1380,130 1440,110 L1440,200 L0,200Z"
+          fill="rgba(16,34,64,0.9)"
+        />
+        <path
+          class="wave3"
+          d="M0,140 C180,110 360,170 540,140 C720,110 900,170 1080,140 C1260,110 1380,160 1440,140 L1440,200 L0,200Z"
+          fill="rgba(10,22,40,1)"
+        />
+      </svg>
     </div>
 
-    <!-- PLAYER -->
-    <div id="player">
-      <!-- Silhueta SVG fallback (some quando tiver sprite real) -->
-      <div id="playerFallback">
-        <svg viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Corpo -->
-          <ellipse cx="20" cy="44" rx="10" ry="10" fill="#8b6914"/>
-          <!-- Cabeça -->
-          <circle cx="20" cy="20" r="10" fill="#c8956a"/>
-          <!-- Chapéu -->
-          <ellipse cx="20" cy="11" rx="12" ry="4" fill="#3d2a08"/>
-          <rect x="14" y="4" width="12" height="9" rx="2" fill="#3d2a08"/>
-          <!-- Detalhe chapéu -->
-          <rect x="14" y="10" width="12" height="2" fill="#c9a84c"/>
-          <!-- Capa -->
-          <path d="M10 34 Q20 50 30 34 L28 44 Q20 52 12 44 Z" fill="#6b1f1f" opacity="0.9"/>
-          <!-- Espada -->
-          <line x1="32" y1="28" x2="38" y2="42" stroke="#c9c9c9" stroke-width="2"/>
-          <line x1="30" y1="32" x2="34" y2="32" stroke="#c9a84c" stroke-width="2"/>
-        </svg>
+    <!-- COMPASS ROSE -->
+    <svg id="compass" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle
+        cx="60"
+        cy="60"
+        r="56"
+        stroke="#c9a84c"
+        stroke-width="1"
+        fill="none"
+        opacity="0.5"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="52"
+        stroke="#c9a84c"
+        stroke-width="0.4"
+        fill="none"
+        opacity="0.3"
+      />
+      <!-- Cardinal points -->
+      <polygon points="60,4 66,55 54,55" fill="#c9a84c" />
+      <polygon points="60,116 66,65 54,65" fill="rgba(201,168,76,0.5)" />
+      <polygon points="4,60 55,54 55,66" fill="rgba(201,168,76,0.5)" />
+      <polygon points="116,60 65,54 65,66" fill="rgba(201,168,76,0.5)" />
+      <!-- Intercardinal -->
+      <polygon
+        points="60,4 63,40 57,40"
+        fill="rgba(201,168,76,0.3)"
+        transform="rotate(45,60,60)"
+      />
+      <polygon
+        points="60,4 63,40 57,40"
+        fill="rgba(201,168,76,0.3)"
+        transform="rotate(135,60,60)"
+      />
+      <polygon
+        points="60,4 63,40 57,40"
+        fill="rgba(201,168,76,0.3)"
+        transform="rotate(225,60,60)"
+      />
+      <polygon
+        points="60,4 63,40 57,40"
+        fill="rgba(201,168,76,0.3)"
+        transform="rotate(315,60,60)"
+      />
+      <!-- Center -->
+      <circle cx="60" cy="60" r="6" fill="#c9a84c" />
+      <circle cx="60" cy="60" r="3" fill="#0a1628" />
+      <!-- N label -->
+      <text
+        x="60"
+        y="20"
+        text-anchor="middle"
+        fill="#f0d080"
+        font-size="10"
+        font-family="Cinzel, serif"
+        font-weight="700"
+      >
+        N
+      </text>
+    </svg>
+
+    <!-- COORDINATES -->
+    <div class="coords">38°42'N · 9°08'W · Lisboa, MCDXCII</div>
+    <div class="version">v0.1.0 — Demo</div>
+
+    <!-- MAIN UI -->
+    <div id="ui">
+      <div class="title-block">
+        <div class="subtitle">⚓ Anno Domini 1492 ⚓</div>
+        <h1>A Era das Grandes<br />Navegações</h1>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-diamond"></div>
+          <div class="divider-line"></div>
+        </div>
+      </div>
+
+      <div class="menu-panel">
+        <button class="menu-btn" onclick="openScreen('nova-viagem')">
+          <span class="btn-icon">⛵</span>
+          <span class="btn-label">Nova Viagem</span>
+        </button>
+        <button class="menu-btn" onclick="openScreen('carregar')">
+          <span class="btn-icon">📜</span>
+          <span class="btn-label">Carregar Partida</span>
+        </button>
+        <button class="menu-btn" onclick="openScreen('opcoes')">
+          <span class="btn-icon">⚙</span>
+          <span class="btn-label">Opções</span>
+        </button>
+        <button class="menu-btn" onclick="openScreen('creditos')">
+          <span class="btn-icon">✦</span>
+          <span class="btn-label">Créditos</span>
+        </button>
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- SUB-SCREENS -->
+    <div id="screen-nova-viagem" class="screen">
+      <h2>Nova Viagem</h2>
+      <p>
+        Escolha seu navegador e destino.<br />Em breve — esta tela será o início
+        da aventura.
+      </p>
+      <button class="back-btn" onclick="closeScreen()">← Voltar</button>
+    </div>
 
-<script>
-// ════════════════════════════════════════════
-//  CONFIGURAÇÕES — ajuste conforme seu mapa
-// ════════════════════════════════════════════
-const CONFIG = {
-  mapW:      2400,   // largura total do mapa em px
-  mapH:      1600,   // altura total do mapa em px
-  tileSize:  80,     // tamanho de cada "quadrado" do grid (para colisão futura)
-  speed:     5,      // velocidade normal (px por frame)
-  sprint:    8,      // velocidade com SHIFT
-  playerW:   48,
-  playerH:   64,
-};
+    <div id="screen-carregar" class="screen">
+      <h2>Carregar Partida</h2>
+      <p style="font-style: normal; color: rgba(242, 228, 196, 0.4)">
+        Nenhuma partida salva encontrada.
+      </p>
+      <button class="back-btn" onclick="closeScreen()">← Voltar</button>
+    </div>
 
-// ════════════════════════════════════════════
-//  ESTADO DO JOGO
-// ════════════════════════════════════════════
-const state = {
-  x: 800,   // posição inicial do player no mundo
-  y: 600,
-  facing: 'down',    // direção que o personagem está olhando
-  isMoving: false,
-};
+    <div id="screen-opcoes" class="screen">
+      <h2>Opções</h2>
+      <p>Configurações de áudio e vídeo — em breve.</p>
+      <button class="back-btn" onclick="closeScreen()">← Voltar</button>
+    </div>
 
-const keys = {};
+    <div id="screen-creditos" class="screen">
+      <h2>Créditos</h2>
+      <p style="text-align: center; line-height: 2">
+        Desenvolvimento: <strong style="color: var(--gold)">Seu Nome</strong
+        ><br />
+        Assets: <strong style="color: var(--gold)">Seu Nome</strong><br />
+        <em style="opacity: 0.5; font-size: 0.8rem"
+          >SENAI — Desenvolvimento de Jogos · 2025</em
+        >
+      </p>
+      <button class="back-btn" onclick="closeScreen()">← Voltar</button>
+    </div>
 
-// Posição da câmera (deslocamento do world)
-let camX = 0, camY = 0;
-
-// ════════════════════════════════════════════
-//  REFERÊNCIAS DOM
-// ════════════════════════════════════════════
-const world      = document.getElementById('world');
-const player     = document.getElementById('player');
-const hudCoords  = document.getElementById('hudCoords');
-const minimapDot = document.getElementById('minimapDot');
-
-// Coloca o player na posição inicial
-player.style.left = state.x + 'px';
-player.style.top  = state.y + 'px';
-
-// ════════════════════════════════════════════
-//  INPUT
-// ════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  keys[e.key.toLowerCase()] = true;
-
-  // Interação
-  if (e.key.toLowerCase() === 'e') handleInteract();
-});
-document.addEventListener('keyup',   e => { keys[e.key.toLowerCase()] = false; });
-
-// ════════════════════════════════════════════
-//  CÂMERA — centraliza o player na tela
-// ════════════════════════════════════════════
-function updateCamera() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
-  // Câmera tenta centralizar o player
-  camX = -(state.x + CONFIG.playerW / 2 - vw / 2);
-  camY = -(state.y + CONFIG.playerH / 2 - vh / 2);
-
-  // Limita a câmera nas bordas do mapa
-  camX = Math.min(0, Math.max(-(CONFIG.mapW - vw), camX));
-  camY = Math.min(0, Math.max(-(CONFIG.mapH - vh), camY));
-
-  world.style.transform = `translate(${camX}px, ${camY}px)`;
-}
-
-// ════════════════════════════════════════════
-//  MOVIMENTO
-// ════════════════════════════════════════════
-function move() {
-  const spd = keys['shift'] ? CONFIG.sprint : CONFIG.speed;
-  let dx = 0, dy = 0;
-
-  if (keys['w'] || keys['arrowup'])    { dy = -spd; state.facing = 'up'; }
-  if (keys['s'] || keys['arrowdown'])  { dy =  spd; state.facing = 'down'; }
-  if (keys['a'] || keys['arrowleft'])  { dx = -spd; state.facing = 'left'; }
-  if (keys['d'] || keys['arrowright']) { dx =  spd; state.facing = 'right'; }
-
-  // Normaliza diagonal (evita velocidade maior na diagonal)
-  if (dx !== 0 && dy !== 0) {
-    dx *= 0.707;
-    dy *= 0.707;
-  }
-
-  state.isMoving = dx !== 0 || dy !== 0;
-
-  // Aplica movimento com colisão nas bordas do mapa
-  state.x = Math.max(0, Math.min(CONFIG.mapW - CONFIG.playerW,  state.x + dx));
-  state.y = Math.max(0, Math.min(CONFIG.mapH - CONFIG.playerH,  state.y + dy));
-
-  // Flip horizontal quando vai para esquerda
-  player.style.transform = state.facing === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
-
-  // Atualiza DOM do player
-  player.style.left = state.x + 'px';
-  player.style.top  = state.y + 'px';
-}
-
-// ════════════════════════════════════════════
-//  HUD & MINIMAP
-// ════════════════════════════════════════════
-function updateHUD() {
-  // Coordenadas no estilo carta náutica
-  const lat = ((state.y / CONFIG.mapH) * 90).toFixed(1);
-  const lon = ((state.x / CONFIG.mapW) * 180).toFixed(1);
-  hudCoords.textContent = `${lat}°N  |  ${lon}°W`;
-
-  // Minimap dot
-  const mm = document.getElementById('minimap');
-  const dotX = (state.x / CONFIG.mapW) * mm.offsetWidth;
-  const dotY = (state.y / CONFIG.mapH) * mm.offsetHeight;
-  minimapDot.style.left = dotX + 'px';
-  minimapDot.style.top  = dotY + 'px';
-}
-
-// ════════════════════════════════════════════
-//  INTERAÇÃO (tecla E)
-//  — aqui vai chamar pergaminhos futuramente
-// ════════════════════════════════════════════
-function handleInteract() {
-  console.log('[E] Interação em:', Math.round(state.x), Math.round(state.y));
-  // TODO: checar proximidade de NPCs / objetos e abrir pergaminho
-}
-
-// ════════════════════════════════════════════
-//  GAME LOOP
-// ════════════════════════════════════════════
-function gameLoop() {
-  move();
-  updateCamera();
-  updateHUD();
-  requestAnimationFrame(gameLoop);
-}
-
-// Inicia
-updateCamera();
-gameLoop();
-</script>
-</body>
+    <script src="js/main.js"></script>
+  </body>
 </html>

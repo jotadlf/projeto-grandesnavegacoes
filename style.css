@@ -1,193 +1,343 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Georgia', serif; }
+    :root {
+      --gold:        #c9a84c;
+      --gold-light:  #f0d080;
+      --parchment:   #f2e4c4;
+      --ink:         #1a120b;
+      --ocean-deep:  #0a1628;
+      --ocean-mid:   #102240;
+      --ocean-surf:  #1a3a5c;
+      --red-wax:     #8b1a1a;
+      --compass-bg:  rgba(10, 22, 40, 0.85);
+    }
 
-    #gameContainer {
-      position: relative;
-      width: 100vw;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'IM Fell English', serif;
+      background: var(--ocean-deep);
+      color: var(--parchment);
       height: 100vh;
       overflow: hidden;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='4' fill='%23c9a84c' opacity='0.8'/%3E%3C/svg%3E") 10 10, crosshair;
     }
 
-    /* ── WORLD (tudo que se move junto) ── */
-    #world {
-      position: absolute;
-      top: 0; left: 0;
-      /* tamanho do seu mapa — ajuste conforme a imagem real */
-      width: 2400px;
-      height: 1600px;
-      will-change: transform;
+    /* ── OCEAN BACKGROUND ── */
+    #ocean {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        #060e1a 0%,
+        #0a1628 30%,
+        #102240 60%,
+        #0d1e36 100%
+      );
     }
 
-    /* ── MAPA ── */
-    #mapImage {
+    /* Stars */
+    .stars {
       position: absolute;
-      top: 0; left: 0;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,220,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 8%,  rgba(255,255,220,0.7) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 40% 20%, rgba(255,255,220,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 5%,  rgba(255,255,220,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 18%, rgba(255,255,220,0.9) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 85% 10%, rgba(255,255,220,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 25%, rgba(255,255,220,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 5% 35%,  rgba(255,255,220,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 18% 42%, rgba(255,255,220,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 78% 30%, rgba(255,255,220,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 38%, rgba(255,255,220,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 33% 45%, rgba(255,255,220,0.6) 0%, transparent 100%);
+      animation: twinkle 4s ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.7; }
+      to   { opacity: 1; }
+    }
+
+    /* Map grid overlay */
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Latitude lines */
+    .lat-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 100% 120px;
+    }
+
+    /* Ocean waves SVG */
+    #waves {
+      position: absolute;
+      bottom: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
-      image-rendering: pixelated;
-      /* ↓ troque pelo caminho real da imagem do mapa no seu repositório */
-      background-image: url('game-desing/mapa.png');
-      background-size: cover;
-      background-repeat: no-repeat;
+      height: 35%;
+      opacity: 0.25;
+    }
+    .wave { animation: waveMove 8s ease-in-out infinite; }
+    .wave2 { animation: waveMove 11s ease-in-out infinite reverse; }
+    .wave3 { animation: waveMove 14s ease-in-out infinite; opacity: 0.5; }
+    @keyframes waveMove {
+      0%,100% { transform: translateX(0); }
+      50%      { transform: translateX(-40px); }
     }
 
-    /* Fallback visual enquanto não tem a imagem real */
-    #mapFallback {
+    /* ── SHIP SILHOUETTE ── */
+    #ship {
       position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(0deg,   transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
-        repeating-linear-gradient(90deg,  transparent, transparent 79px, rgba(101,84,58,0.18) 80px),
-        radial-gradient(ellipse at 30% 40%, #2d5a1b 0%, transparent 35%),
-        radial-gradient(ellipse at 70% 60%, #1a4a2d 0%, transparent 28%),
-        radial-gradient(ellipse at 50% 80%, #3d6b22 0%, transparent 20%),
-        linear-gradient(160deg, #4a7c3f 0%, #2d5e35 40%, #1e4428 100%);
-    }
-    /* Oceano no mapa fallback */
-    #mapFallback::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; width: 38%; height: 100%;
-      background: linear-gradient(90deg, #0a3a6e 0%, #0d4f8a 60%, #1a6ba0 100%);
-      opacity: 0.85;
-    }
-    /* Texto indicando que é placeholder */
-    #mapFallback::after {
-      content: '[ Mapa placeholder — substitua por game-desing/mapa.png ]';
-      position: absolute;
-      top: 16px; left: 50%;
+      bottom: 20%;
+      left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.55);
-      color: #f0d080;
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      padding: 4px 12px;
-      border-radius: 2px;
-      white-space: nowrap;
+      width: 360px;
+      opacity: 0.18;
+      animation: shipFloat 6s ease-in-out infinite;
+    }
+    @keyframes shipFloat {
+      0%,100% { transform: translateX(-50%) translateY(0) rotate(-0.5deg); }
+      50%      { transform: translateX(-50%) translateY(-12px) rotate(0.5deg); }
     }
 
-    /* ── PLAYER ── */
-    #player {
-      position: absolute;
-      width: 48px;
-      height: 64px;
-      /* ↓ troque pelo sprite real */
-      background-image: url('game-desing/personagem.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center bottom;
-      image-rendering: pixelated;
-      /* Sombra suave embaixo do personagem */
-      filter: drop-shadow(0 6px 6px rgba(0,0,0,0.5));
-      transition: transform 0.05s;
-      z-index: 10;
+    /* ── COMPASS ROSE (bottom right) ── */
+    #compass {
+      position: fixed;
+      bottom: 30px;
+      right: 40px;
+      width: 110px;
+      height: 110px;
+      animation: compassSpin 30s linear infinite;
+      opacity: 0.55;
     }
-    /* Fallback: silhueta de navegador quando não tem sprite */
-    #playerFallback {
-      position: absolute;
-      inset: 0;
+    @keyframes compassSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── MAIN LAYOUT ── */
+    #ui {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
-    }
-    #playerFallback svg { width: 40px; height: 56px; }
-
-    /* ── HUD ── */
-    #hud {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 14px 20px;
-      pointer-events: none;
+      justify-content: center;
+      gap: 0;
     }
 
-    .hud-panel {
-      background: rgba(10, 18, 30, 0.82);
-      border: 1px solid rgba(201,168,76,0.35);
-      padding: 8px 14px;
-      border-radius: 2px;
-      pointer-events: all;
+    /* Title block */
+    .title-block {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 1.2s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    #hudLocation {
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      color: #c9a84c;
+    .subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.35em;
+      color: var(--gold);
       text-transform: uppercase;
-    }
-    #hudCoords {
-      font-size: 0.65rem;
-      color: rgba(242,228,196,0.45);
-      margin-top: 2px;
+      margin-bottom: 12px;
+      opacity: 0.8;
     }
 
-    /* Minimap */
-    #minimap {
-      width: 140px;
-      height: 90px;
+    h1 {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, #a07830 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 30px rgba(201,168,76,0.35));
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px auto 0;
+      width: fit-content;
+    }
+    .divider-line {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .divider-diamond {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+
+    /* Menu panel */
+    .menu-panel {
+      background: linear-gradient(160deg,
+        rgba(10,22,40,0.92) 0%,
+        rgba(16,34,64,0.88) 100%
+      );
       border: 1px solid rgba(201,168,76,0.3);
-      background: rgba(10,18,30,0.82);
+      border-radius: 2px;
+      padding: 44px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 340px;
+      box-shadow:
+        0 0 0 1px rgba(201,168,76,0.08),
+        0 30px 80px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(201,168,76,0.15);
+      animation: fadeUp 1.4s 0.3s ease forwards;
+      opacity: 0;
       position: relative;
-      overflow: hidden;
     }
-    #minimapBg {
+    .menu-panel::before,
+    .menu-panel::after {
+      content: '✦';
       position: absolute;
-      inset: 0;
-      /* ↓ mesma imagem do mapa, só menor */
-      background-image: url('game-desing/mapa.png');
-      background-size: cover;
-      opacity: 0.55;
+      color: var(--gold);
+      font-size: 0.7rem;
+      opacity: 0.5;
     }
-    #minimapDot {
-      position: absolute;
-      width: 6px; height: 6px;
-      background: #f0d080;
-      border-radius: 50%;
-      box-shadow: 0 0 4px #f0d080;
-      transform: translate(-50%, -50%);
+    .menu-panel::before { top: 10px; left: 14px; }
+    .menu-panel::after  { bottom: 10px; right: 14px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Controles hint */
-    #controls {
+    /* Buttons */
+    .menu-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      color: var(--parchment);
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .menu-btn:last-child { border-bottom: none; }
+
+    .btn-icon {
+      font-size: 1.1rem;
+      width: 22px;
+      text-align: center;
+      color: var(--gold);
+      opacity: 0.7;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+
+    .menu-btn::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(201,168,76,0.12), transparent);
+      transition: width 0.3s ease;
+    }
+    .menu-btn:hover::before { width: 100%; }
+    .menu-btn:hover { color: var(--gold-light); }
+    .menu-btn:hover .btn-icon { opacity: 1; transform: translateX(4px); }
+
+    .btn-label { position: relative; z-index: 1; }
+
+    /* Coordinates display */
+    .coords {
       position: fixed;
       bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 6px;
-      z-index: 100;
-      opacity: 0.55;
-      pointer-events: none;
-    }
-    .key {
-      background: rgba(10,18,30,0.9);
-      border: 1px solid rgba(201,168,76,0.4);
-      color: #c9a84c;
+      left: 24px;
+      font-family: 'Cinzel', serif;
       font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      padding: 4px 8px;
-      border-radius: 2px;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      opacity: 0.4;
     }
 
-    /* Botão voltar ao menu */
-    #btnMenu {
+    /* Version tag */
+    .version {
       position: fixed;
-      top: 14px;
+      top: 16px;
       right: 20px;
-      z-index: 200;
-      background: rgba(10,18,30,0.82);
-      border: 1px solid rgba(201,168,76,0.35);
-      color: #c9a84c;
-      font-family: 'Georgia', serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      padding: 8px 16px;
-      cursor: pointer;
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      opacity: 0.3;
       text-transform: uppercase;
-      transition: background 0.2s;
     }
-    #btnMenu:hover { background: rgba(201,168,76,0.15); }
+
+    /* Overlay screen (telas filhas) */
+    .screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(6,14,26,0.96);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeIn 0.4s ease;
+    }
+    .screen.active { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .screen h2 {
+      font-family: 'Cinzel Decorative', cursive;
+      color: var(--gold);
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+    .screen p {
+      color: rgba(242,228,196,0.6);
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+    .back-btn {
+      margin-top: 20px;
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      padding: 10px 28px;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-transform: uppercase;
+    }
+    .back-btn:hover {
+      background: rgba(201,168,76,0.12);
+      border-color: var(--gold);
+    }
