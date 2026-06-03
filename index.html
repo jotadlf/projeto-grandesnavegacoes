@@ -7,8 +7,8 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap"
       rel="stylesheet"
-      href="css/style.css"
     />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <!-- OCEAN BG -->
@@ -128,6 +128,14 @@
         />
       </svg>
     </div>
+
+    <!-- GAME CANVAS -->
+    <canvas
+      id="game-canvas"
+      width="1440"
+      height="900"
+      style="display: none; position: fixed; inset: 0; z-index: 50"
+    ></canvas>
 
     <!-- COMPASS ROSE -->
     <svg id="compass" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
@@ -266,6 +274,6 @@
       <button class="back-btn" onclick="closeScreen()">← Voltar</button>
     </div>
 
-    <script src="js/main.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>
